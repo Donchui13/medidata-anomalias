@@ -83,8 +83,8 @@ section[data-testid="stSidebar"] * {{ color: {COLORS['text_soft']} !important; }
 .kpi-card.bajo {{ border-left-color: {COLORS['bajo']}; }}
 .kpi-card.teal {{ border-left-color: {COLORS['teal']}; }}
 .kpi-label {{ font-size: 14px; text-transform: uppercase; color: {COLORS['neutral']} !important; font-weight: 800; margin-bottom: 8px; }}
-.kpi-value {{ font-size: 36px; font-weight: 800; color: {COLORS['text_dark']} !important; line-height: 1.1; }}
-.kpi-sub {{ font-size: 16px; font-weight: 600; color: {COLORS['text_dark']} !important; margin-top: 6px; }}
+.kpi-value {{ font-size: 38px; font-weight: 900; color: {COLORS['text_dark']} !important; line-height: 1.1; }}
+.kpi-sub {{ font-size: 15px; font-weight: 500; color: {COLORS['neutral']} !important; margin-top: 6px; }}
 
 .report-card {{ background: #FFFFFF !important; border-radius: 12px; padding: 20px; box-shadow: 0 4px 14px rgba(15,23,42,0.06); height: 100%; border-top: 4px solid {COLORS['primary']}; margin-bottom: 15px; }}
 .report-title {{ font-size: 20px; font-weight: 800; color: {COLORS['text_dark']} !important; margin-bottom: 12px; border-bottom: 2px solid {COLORS['border']}; padding-bottom: 8px; }}
@@ -173,20 +173,13 @@ def predecir(df_input, paquete):
     return df_work, X, preds
 
 def kpi_card(label, value, sub="", kind="primary"):
-    if sub:
-        st.markdown(f"""
-        <div class='kpi-card {kind}' style="margin-bottom: 15px;">
-            <div class='kpi-label'>{label}</div>
-            <div style="font-size: 38px; font-weight: 900; color: {COLORS['text_dark']} !important; line-height: 1;">{sub}</div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown(f"""
-        <div class='kpi-card {kind}' style="margin-bottom: 15px;">
-            <div class='kpi-label'>{label}</div>
-            <div class='kpi-value'>{value}</div>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class='kpi-card {kind}' style="margin-bottom: 15px;">
+        <div class='kpi-label'>{label}</div>
+        <div class='kpi-value'>{value}</div>
+        <div class='kpi-sub'>{sub}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ============================================================
 # LAYOUT (BARRA LATERAL CON DISEÑO CLÍNICO)
@@ -266,11 +259,11 @@ norm  = total - anom
 pct   = (anom / total * 100) if total else 0.0
 
 st.markdown('<div class="section-title">📊 Resumen General y Auditoría</div>', unsafe_allow_html=True)
-k1, k2, k3, k4 = st.columns(4)
+# Ahora los cuadros muestran el número grande y el texto abajo. Eliminamos Score promedio.
+k1, k2, k3 = st.columns(3)
 with k1: kpi_card("Total registros", f"{total:,}", "accesos analizados", "primary")
 with k2: kpi_card("Anomalías", f"{anom:,}", f"{pct:.2f}% del total", "critico")
 with k3: kpi_card("Registros normales", f"{norm:,}", f"{100-pct:.2f}% del total", "bajo")
-with k4: kpi_card("Score promedio", f"{df_res['Score_Anomalia'].mean():.3f}", "normalizado 0-1", "teal")
 
 # MÉTRICAS DE DESEMPEÑO
 st.markdown('<div class="section-title">🎯 Métricas de Desempeño del Modelo</div>', unsafe_allow_html=True)
@@ -282,10 +275,10 @@ f1 = metricas_modelo.get("f1", 0.0)
 acc = metricas_modelo.get("accuracy", 0.0)
 
 m1, m2, m3, m4 = st.columns(4)
-with m1: kpi_card("Precision", "", f"{prec*100:.2f}%", "teal")
-with m2: kpi_card("Recall", "", f"{rec*100:.2f}%", "alto")
-with m3: kpi_card("F1-score", "", f"{f1*100:.2f}%", "primary")
-with m4: kpi_card("Accuracy", "", f"{acc*100:.2f}%", "neutral")
+with m1: kpi_card("Precision", f"{prec*100:.2f}%", "Falsos positivos", "teal")
+with m2: kpi_card("Recall", f"{rec*100:.2f}%", "Detección real", "alto")
+with m3: kpi_card("F1-score", f"{f1*100:.2f}%", "Balance", "primary")
+with m4: kpi_card("Accuracy", f"{acc*100:.2f}%", "Aciertos", "neutral")
 
 st.markdown("<p style='font-size: 16px; color: #475569; font-weight: 500; margin-top: 10px;'>Nota: Estas métricas fueron calculadas y guardadas durante el entrenamiento del modelo en Jupyter con los datos etiquetados de prueba.</p>", unsafe_allow_html=True)
 
@@ -328,12 +321,13 @@ layout_base = dict(
 
 if "Hour" in df_res.columns and "User_ID" in df_res.columns:
     moda_hora = df_res["Hour"].mode().iloc[0] if not df_res["Hour"].mode().empty else 0
-    mediana_logins = df_res["User_Access_Count"].median() if "User_Access_Count" in df_res.columns else 0
-    
+    cant_moda = len(df_res[df_res["Hour"] == moda_hora])
+    pct_inicios_frecuentes = (cant_moda / total * 100) if total > 0 else 0
+
     c_stat1, c_stat2, c_stat3 = st.columns(3)
-    with c_stat1: kpi_card("Hora más frecuente", f"{moda_hora}:00 hrs", "Hora de mayor actividad", "teal")
-    with c_stat2: kpi_card("Mediana de inicios", f"{mediana_logins:,.0f}", "Por usuario", "primary")
-    with c_stat3: kpi_card("Total registros", f"{total:,}", "Evaluados", "alto")
+    with c_stat1: kpi_card("Total registros", f"{total:,}", "Evaluados", "alto")
+    with c_stat2: kpi_card("Hora más frecuente", f"{moda_hora}:00 hrs", "Hora pico", "teal")
+    with c_stat3: kpi_card("Inicios frecuentes", f"{pct_inicios_frecuentes:.2f}%", "Ocurren en la hora pico", "primary")
     st.write("")
 
 # FILA 1: Top Usuarios y Árbol de Decisión
