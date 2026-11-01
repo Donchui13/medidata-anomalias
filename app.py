@@ -219,20 +219,25 @@ try:
             if st.button("Generar y Descargar Reporte PDF", use_container_width=True):
                 with st.spinner("Construyendo documento PDF con gráficos..."):
                     try:
+                        # --- EXPORTACIÓN DE GRÁFICOS CON MÁRGENES CORREGIDOS ---
                         img_hist = io.BytesIO()
+                        fig_hist.update_layout(margin=dict(l=60, r=20, t=40, b=60), font=dict(size=14))
                         fig_hist.write_image(img_hist, format="png", width=1000, height=500, scale=2)
                         img_hist.seek(0)
                         
                         img_bar = io.BytesIO()
                         if fig_bar:
+                            fig_bar.update_layout(margin=dict(l=120, r=20, t=40, b=60), font=dict(size=14))
                             fig_bar.write_image(img_bar, format="png", width=1000, height=500, scale=2)
                             img_bar.seek(0)
                         
                         img_heat = io.BytesIO()
                         if fig_heat:
+                            fig_heat.update_layout(margin=dict(l=80, r=20, t=40, b=60), font=dict(size=14))
                             fig_heat.write_image(img_heat, format="png", width=1000, height=500, scale=2)
                             img_heat.seek(0)
 
+                        # --- CONSTRUCCIÓN DEL PDF ---
                         buf = io.BytesIO()
                         doc = SimpleDocTemplate(buf, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
                         styles = getSampleStyleSheet()
