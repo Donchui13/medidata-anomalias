@@ -291,6 +291,33 @@ try:
                         story.append(Spacer(1, 15))
                         next_idx += 1
 
+                        # --- NUEVA SECCIÓN: USUARIOS RECOMENDADOS PARA BLOQUEO ---
+                        story.append(Paragraph(f"{next_idx}. Usuarios Recomendados para Bloqueo Inmediato", estilo_sub))
+                        usuarios_bloqueo = df_res[df_res["Riesgo"] == "🔴 CRÍTICO"].groupby("User_ID").agg(
+                            Total_Accesos=("User_ID", "count"),
+                            Max_Score=("Score_Anomalia", "max")
+                        ).reset_index().sort_values(by="Max_Score", ascending=False).head(10)
+
+                        if not usuarios_bloqueo.empty:
+                            usuarios_bloqueo["Max_Score"] = usuarios_bloqueo["Max_Score"].apply(lambda x: f"{x:.4f}")
+                            t_bloqueo = Table([["User ID", "Total Accesos Críticos", "Score Máximo"]] + usuarios_bloqueo.values.tolist(), colWidths=[2*inch, 2*inch, 2*inch])
+                            t_bloqueo.setStyle(TableStyle([
+                                ("BACKGROUND", (0,0), (-1,0), colors.HexColor(RIESGO_COLORS["🔴 CRÍTICO"])), 
+                                ("TEXTCOLOR", (0,0), (-1,0), colors.white), 
+                                ("GRID", (0,0), (-1,-1), 0.5, colors.grey), 
+                                ("ALIGN", (0,0), (-1,-1), "CENTER"), 
+                                ("FONTNAME", (0,0), (-1,-1), "Helvetica"), 
+                                ("FONTSIZE", (0,0), (-1,-1), 9)
+                            ]))
+                            story.append(t_bloqueo)
+                            story.append(Paragraph("<i>* Se recomienda inhabilitar estos usuarios hasta revisar su actividad.</i>", estilo_normal))
+                        else:
+                            story.append(Paragraph("No se detectaron usuarios con nivel CRÍTICO.", estilo_normal))
+                            
+                        story.append(Spacer(1, 15))
+                        next_idx += 1
+                        # --------------------------------------------------------
+
                         story.append(Paragraph(f"{next_idx}. Distribucion de Scores (Grafico)", estilo_sub))
                         story.append(ReportLabImage(img_hist, width=6.5*inch, height=3.2*inch))
                         story.append(Spacer(1, 15))
