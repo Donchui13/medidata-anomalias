@@ -219,25 +219,18 @@ try:
             if st.button("Generar y Descargar Reporte PDF", use_container_width=True):
                 with st.spinner("Construyendo documento PDF con gráficos..."):
                     try:
-                        # CORRECCIÓN: Ajustar márgenes en el layout del gráfico ANTES de exportar
-                        fig_hist_copy = fig_hist.full_figure_for_development(warn=False)
-                        fig_hist_copy.update_layout(margin=dict(l=80, r=40, t=40, b=40))
                         img_hist = io.BytesIO()
-                        fig_hist_copy.write_image(img_hist, format="png", width=1000, height=500, scale=2)
+                        fig_hist.write_image(img_hist, format="png", width=1000, height=500, scale=2)
                         img_hist.seek(0)
                         
                         img_bar = io.BytesIO()
                         if fig_bar:
-                            fig_bar_copy = fig_bar.full_figure_for_development(warn=False)
-                            fig_bar_copy.update_layout(margin=dict(l=150, r=40, t=40, b=40))
-                            fig_bar_copy.write_image(img_bar, format="png", width=1000, height=500, scale=2)
+                            fig_bar.write_image(img_bar, format="png", width=1000, height=500, scale=2)
                             img_bar.seek(0)
                         
                         img_heat = io.BytesIO()
                         if fig_heat:
-                            fig_heat_copy = fig_heat.full_figure_for_development(warn=False)
-                            fig_heat_copy.update_layout(margin=dict(l=80, r=40, t=40, b=40))
-                            fig_heat_copy.write_image(img_heat, format="png", width=1000, height=500, scale=2)
+                            fig_heat.write_image(img_heat, format="png", width=1000, height=500, scale=2)
                             img_heat.seek(0)
 
                         buf = io.BytesIO()
@@ -320,6 +313,6 @@ try:
                         st.download_button(label="✅ Guardar PDF Completo", data=buf.getvalue(), file_name="reporte_auditoria.pdf", mime="application/pdf", use_container_width=True)
                         st.success("¡PDF generado exitosamente con gráficos y tablas!")
                     except Exception as e:
-                        st.error(f"Error PDF: Asegurate de tener instalado Kaleido. Detalle: {e}")
+                        st.error(f"Error PDF: {e}")
 except Exception as e:
     st.error(f"Error general: {e}")
